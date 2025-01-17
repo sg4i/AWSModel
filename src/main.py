@@ -62,15 +62,25 @@ async def save_all_services():
         aws_model = AWSModel()
         services = aws_model.list_services()
         
+        # 初始化计数器
+        total_services = len(services)
+        total_apis = 0
+        
         # 保存服务元数据
         for service in services:
             await save_service_meta(service)
             
             # 获取并保存服务的API操作
             apis = aws_model.list_service_apis(service.name)[service.name]
+            api_count = len(apis)
+            total_apis += api_count
+            
+            logger.info(f"Service {service.name}: {api_count} APIs processed")
+            
             for api in apis:
                 await save_service_api(service.name, api)
                 
+        logger.info(f"统计信息 - 总服务数: {total_services}, 总API数: {total_apis}")
         logger.info("Completed saving all services and APIs")
         
     except Exception as e:
